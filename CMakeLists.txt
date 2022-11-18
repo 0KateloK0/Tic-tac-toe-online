@@ -1,0 +1,10 @@
+cmake_minimum_required(VERSION 3.23)
+project(hw_socket)
+
+set(CMAKE_CXX_STANDARD 20)
+
+
+
+add_executable(server server.cpp common.cpp)
+add_executable(client client.cpp common.cpp)
+
