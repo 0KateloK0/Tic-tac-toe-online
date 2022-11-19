@@ -3,7 +3,7 @@
 
 
 namespace net {
-
+    void init ();
 }
 
 
