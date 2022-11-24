@@ -1,62 +1,77 @@
 #include "common.h"
 
-net::Socket::~Socket() {
-    if (is_created)
-        close(socket_fd);
-}
+const in_port_t net::Socket::port = htons(12345);
+sockaddr_in net::Socket::address = {
+    .sin_family = AF_INET,
+    .sin_port = port,
+    .sin_addr{.s_addr = INADDR_ANY}
+};
 
-net::Socket::Socket() {
-    socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-    is_created = socket_fd != -1;
-    if (!is_created)
+net::Socket::Socket() : is_open(false) {
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock < 0) {
         throw std::runtime_error("Error while creating socket");
+    }
+    is_open = true;
 }
 
-net::AcceptingSocket::AcceptingSocket() {
-    sockaddr_in sockaddrIn = {
-        .sin_family = AF_INET,
-        .sin_port = port,
-        .sin_addr{.s_addr = INADDR_ANY}
-    };
-    if (bind(socket_fd, reinterpret_cast<const sockaddr*>(&sockaddrIn), sizeof(sockaddrIn)) == -1) {
+net::Socket::~Socket() {
+    if (is_open) {
+        close(sock);
+    }
+}
+
+net::Socket::operator int() const {
+    return sock;
+}
+
+net::Socket::Socket(int sock) : sock(sock), is_open(true) {}
+
+net::AcceptingSocket::AcceptingSocket() : Socket() {
+    if (bind(sock, reinterpret_cast<const sockaddr*>(&address), sizeof(address)) == -1) {
         throw std::runtime_error("Error while binding");
     }
 
-    if (listen(socket_fd, 50) == -1) {
+    if (listen(sock, 50) == -1) {
         throw std::runtime_error("Error while listening");
     }
 }
 
-int net::AcceptingSocket::accept_connection() {
-    sockaddr_in peer_addr {
-            .sin_family = AF_INET,
-            .sin_port = port,
-            .sin_addr{.s_addr = INADDR_ANY}
-    };
+int net::AcceptingSocket::accept_connection() const {
+    sockaddr_in peer_addr = address;
     socklen_t peer_addr_size = sizeof(peer_addr);
-    return accept(socket_fd, reinterpret_cast<sockaddr*>(&peer_addr), &peer_addr_size);
+    return accept(sock, reinterpret_cast<sockaddr*>(&peer_addr), &peer_addr_size);
 }
 
-std::string net::AcceptingSocket::get_message(int accepted_socket) {
-    const size_t buffer_size = 1000;
-    char* buffer = new char[buffer_size];
-    ssize_t amount = recv(accepted_socket, buffer, buffer_size, MSG_WAITALL);
-    buffer[amount] = '\0'; // just to be sure
-    return {buffer};
-}
 
-net::ConnectingSocket::ConnectingSocket() {
-    sockaddr_in sockaddrIn = {
-        .sin_family = AF_INET,
-        .sin_port = port,
-        .sin_addr{.s_addr = INADDR_ANY}
-    };
+net::TCPConnectionSocket::TCPConnectionSocket() : Socket() {
+    is_open = false;
 
-    if (connect(socket_fd, reinterpret_cast<sockaddr*>(&sockaddrIn), sizeof(sockaddrIn)) == -1) {
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock < 0) {
+        throw std::runtime_error("Error while creating socket");
+    }
+
+    if (connect(sock, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == -1) {
         throw std::runtime_error("Error while connecting");
+    }
+
+    is_open = true;
+}
+
+void net::TCPConnectionSocket::send_message(const std::string &msg) const {
+    ssize_t amount = send(sock, msg.data(), msg.size(), 0);
+    if (amount < 0) {
+        throw std::runtime_error("Error while sending data");
     }
 }
 
-void net::ConnectingSocket::send_message(const std::string &msg) {
-    ssize_t len = send(socket_fd, msg.data(), msg.size(), MSG_NOSIGNAL);
+std::string net::TCPConnectionSocket::get_message() const {
+    std::array<char, buffer_size> buffer{};
+    ssize_t amount = recv(sock, buffer.data(), buffer_size, 0);
+    if (amount < 0) {
+        throw std::runtime_error("Error while receiving data");
+    }
+    buffer[amount] = '\0';
+    return {buffer.data()};
 }

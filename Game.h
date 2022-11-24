@@ -10,20 +10,22 @@ public:
     Game() = default;
     ~Game() = default;
     bool is_correct_move(size_t x, size_t y) const;
+    bool is_correct_move(size_t x, size_t y, bool player) const;
     void make_move(size_t x, size_t y);
     std::string to_string() const;
+    bool is_ended() const;
 private:
-    bool is_mark_move;
+    bool is_mark_move = true;
 
-    static const size_t WIDTH = 50;
-    static const size_t HEIGHT = 50;
+    static const size_t WIDTH = 3;
+    static const size_t HEIGHT = 3;
     enum cell_type {
         EMPTY,
         MARK, // крестик
         ZERO // нолик
     };
     using field_type = std::array<std::array<cell_type, HEIGHT>, WIDTH>;
-    field_type field;
+    field_type field{};
 
     std::vector<field_type> history;
 };
