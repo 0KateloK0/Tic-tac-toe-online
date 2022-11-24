@@ -39,10 +39,14 @@ int main() {
         if (FD_ISSET(master_socket, &rdfs)) {
             int sock = master_socket.accept_connection();
 
-            if (player1_sock.has_value())
+            if (player1_sock.has_value()) {
                 player2_sock.emplace(sock);
-            else
+                FD_SET(*player2_sock, &master_rdfs);
+            }
+            else {
                 player1_sock.emplace(sock);
+                FD_SET(*player1_sock, &master_rdfs);
+            }
 
             if (player1_sock.has_value() && !player2_sock.has_value()) {
                 player1_sock->send_message(etos(net::PLAYER1_CONNECTED) + "Wait for the second player to connect\n");
@@ -56,11 +60,16 @@ int main() {
             }
         }
 
+        if (FD_ISSET(*player1_sock, &rdfs)) {
+            // first player disconnected, while another didn't connect
+            if (player1_sock->get_message().empty()) {
+                FD_SET(*player1_sock, &master_rdfs);
+                player1_sock.reset();
+            }
+        }
+
         // I'm ignoring any messages from players, while the game hasn't started
     }
-
-    FD_SET(*player1_sock, &master_rdfs);
-    FD_SET(*player2_sock, &master_rdfs);
 
     Game game;
 

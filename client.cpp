@@ -22,6 +22,7 @@ int main () {
             char status;
             std::string msg = sock.get_message();
             if (msg.empty()) {
+                std::cout << "Server disconnected\n";
                 break;
             }
             std::stringstream source{msg};
