@@ -10,15 +10,15 @@ public:
     Game() = default;
     ~Game() = default;
     bool is_correct_move(size_t x, size_t y, bool player) const;
-    void make_move(size_t x, size_t y);
-    std::string to_string() const;
     enum status {
         IS_GOING,
         MARK_WON,
         ZERO_WON,
         DRAW
     };
+    status make_move(size_t x, size_t y, bool player);
     status get_status() const;
+    std::string to_string() const;
 private:
     bool is_mark_move = true;
 

@@ -12,7 +12,7 @@
 
 namespace net {
     static const size_t buffer_size = 1024; // it's going be same everywhere anyway
-    using buffer_t = std::array<char, buffer_size + 1>; // +1 is for \0
+//    using buffer_t = std::array<char, buffer_size + 1>; // +1 is for \0
 
     class Socket {
     public:
@@ -42,6 +42,9 @@ namespace net {
         TCPConnectionSocket();
         explicit TCPConnectionSocket(int sock);
         ~TCPConnectionSocket() = default;
+        TCPConnectionSocket(TCPConnectionSocket const&) = default;
+        TCPConnectionSocket& operator=(TCPConnectionSocket const&) = default;
+
         void send_message(std::string const&) const;
         std::string get_message() const;
     };

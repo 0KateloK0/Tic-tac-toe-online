@@ -10,7 +10,7 @@ sockaddr_in net::Socket::address = {
 net::Socket::Socket() : is_open(false) {
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0) {
-        throw std::runtime_error("Error while creating socket");
+        throw std::runtime_error("Error while creating socket\n" + std::to_string(errno));
     }
     is_open = true;
 }
@@ -28,12 +28,15 @@ net::Socket::operator int() const {
 net::Socket::Socket(int sock) : sock(sock), is_open(true) {}
 
 net::AcceptingSocket::AcceptingSocket() : Socket() {
+    int option = 1;
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int));
+
     if (bind(sock, reinterpret_cast<const sockaddr*>(&address), sizeof(address)) == -1) {
-        throw std::runtime_error("Error while binding");
+        throw std::runtime_error("Error while binding\n" + std::to_string(errno));
     }
 
     if (listen(sock, 50) == -1) {
-        throw std::runtime_error("Error while listening");
+        throw std::runtime_error("Error while listening\n" + std::to_string(errno));
     }
 }
 
@@ -49,31 +52,31 @@ net::TCPConnectionSocket::TCPConnectionSocket() : Socket() {
 
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0) {
-        throw std::runtime_error("Error while creating socket");
+        throw std::runtime_error("Error while creating socket\n" + std::to_string(errno));
     }
 
     if (connect(sock, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == -1) {
-        throw std::runtime_error("Error while connecting");
+        throw std::runtime_error("Error while connecting\n" + std::to_string(errno));
     }
 
     is_open = true;
 }
 
 void net::TCPConnectionSocket::send_message(const std::string &msg) const {
-    ssize_t amount = send(sock, msg.data(), msg.size(), 0);
+    ssize_t amount = send(sock, msg.c_str(), msg.size(), 0);
     if (amount < 0) {
-        throw std::runtime_error("Error while sending data");
+        throw std::runtime_error("Error while sending data:\n" + std::to_string(errno));
     }
 }
 
 std::string net::TCPConnectionSocket::get_message() const {
-    std::array<char, buffer_size> buffer{};
-    ssize_t amount = recv(sock, buffer.data(), buffer_size, 0);
+    char buffer[buffer_size + 1];
+    ssize_t amount = recv(sock, buffer, buffer_size, 0);
     if (amount < 0) {
-        throw std::runtime_error("Error while receiving data");
+        throw std::runtime_error("Error while receiving data\n" + std::to_string(errno));
     }
     buffer[amount] = '\0';
-    return {buffer.data()};
+    return {buffer};
 }
 
 net::TCPConnectionSocket::TCPConnectionSocket(int sock) : Socket(sock) {}

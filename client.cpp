@@ -13,15 +13,21 @@ int main () {
         select(sock + 1, &rdfs, nullptr, nullptr, nullptr);
 
         if (FD_ISSET(0, &rdfs)) {
-            std::string buffer;
-            sock.send_message(buffer);
+            int x, y;
+            std::cin >> x >> y;
+            sock.send_message(std::to_string(x) + ' ' + std::to_string(y));
         }
 
         if (FD_ISSET(sock, &rdfs)) {
             char status;
-            std::stringstream source{sock.get_message()};
+            std::string msg = sock.get_message();
+            if (msg.empty()) {
+                break;
+            }
+            std::stringstream source{msg};
             source >> status;
             auto state = static_cast<net::app_status>(status);
+//            std::cout << status << '\n';
             std::cout << source.rdbuf() << std::flush;
             switch (state) {
                 case net::PLAYER1_DISCONNECTED:
