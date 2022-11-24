@@ -1,6 +1,6 @@
 #include "common.h"
 
-const in_port_t net::Socket::port = htons(12345);
+const in_port_t net::Socket::port = htons(30001);
 sockaddr_in net::Socket::address = {
     .sin_family = AF_INET,
     .sin_port = port,
@@ -74,4 +74,10 @@ std::string net::TCPConnectionSocket::get_message() const {
     }
     buffer[amount] = '\0';
     return {buffer.data()};
+}
+
+net::TCPConnectionSocket::TCPConnectionSocket(int sock) : Socket(sock) {}
+
+std::string net::etos(net::app_status status)  {
+    return std::to_string(status) + "\n";
 }

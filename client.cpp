@@ -1,20 +1,39 @@
 #include "common.h"
 
 int main () {
-//    net::ConnectingSocket sock;
+    net::TCPConnectionSocket sock;
 
-//    sock.send_message("Hello, world!");
+    fd_set rdfs{};
 
+    while (true) {
+        FD_ZERO(&rdfs);
+        FD_SET(0, &rdfs);
+        FD_SET(sock, &rdfs);
 
+        select(sock + 1, &rdfs, nullptr, nullptr, nullptr);
 
-    /*bool is_game_ended = false;
+        if (FD_ISSET(0, &rdfs)) {
+            std::string buffer;
+            sock.send_message(buffer);
+        }
 
-    while (!is_game_ended) {
-        std::string x;
-        std::cin >> x;
-//        sock.send_message(x);
-
-    }*/
+        if (FD_ISSET(sock, &rdfs)) {
+            char status;
+            std::stringstream source{sock.get_message()};
+            source >> status;
+            auto state = static_cast<net::app_status>(status);
+            std::cout << source.rdbuf() << std::flush;
+            switch (state) {
+                case net::PLAYER1_DISCONNECTED:
+                case net::PLAYER2_DISCONNECTED:
+                case net::SERVER_BROKE:
+                case net::GAME_ENDED:
+                    return 1;
+                default:
+                    break;
+            }
+        }
+    }
 
     return 0;
 }

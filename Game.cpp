@@ -33,7 +33,7 @@ std::string Game::to_string() const {
     return res;
 }
 
-bool Game::is_ended() const {
+Game::status Game::get_status() const {
     int counter = 0;
     for (int i = 0; i < HEIGHT; ++i) {
         for (int j = 0; j < WIDTH; ++j) {
@@ -42,7 +42,7 @@ bool Game::is_ended() const {
             else
                 counter = 0;
             if (counter == 3)
-                return true;
+                return is_mark_move ? MARK_WON : ZERO_WON;
         }
     }
     counter = 0;
@@ -53,7 +53,7 @@ bool Game::is_ended() const {
             else
                 counter = 0;
             if (counter == 3)
-                return true;
+                return is_mark_move ? MARK_WON : ZERO_WON;
         }
     }
     counter = 0;
@@ -61,11 +61,19 @@ bool Game::is_ended() const {
         if (field[i][i] == MARK && is_mark_move || field[i][i] == ZERO && !is_mark_move)
             ++counter;
     }
-    if (counter == 3) return true;
+    if (counter == 3) return is_mark_move ? MARK_WON : ZERO_WON;
     for (int i = 0; i < WIDTH; ++i) {
         if (field[WIDTH - 1 - i][i] == MARK && is_mark_move || field[WIDTH - 1 - i][i] == ZERO && !is_mark_move)
             ++counter;
     }
-    if (counter == 3) return true;
-    return false;
+    if (counter == 3) return is_mark_move ? MARK_WON : ZERO_WON;
+
+    for (int i = 0; i < HEIGHT; ++i) {
+        for (int j = 0; j < WIDTH; ++j) {
+            if (field[i][j] == ZERO)
+                return IS_GOING;
+        }
+    }
+
+    return DRAW;
 }
