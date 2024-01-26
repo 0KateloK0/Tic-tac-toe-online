@@ -51,7 +51,7 @@ namespace net {
 
     // Okay, protocol for server to report to players in format STATUS\nMESSAGE
     enum app_status {
-        PLAYER1_CONNECTED, // maybe it'll work?
+        PLAYER1_CONNECTED,
         PLAYER2_CONNECTED,
         PLAYER1_DISCONNECTED,
         PLAYER2_DISCONNECTED,
