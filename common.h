@@ -12,7 +12,6 @@
 
 namespace net {
     static const size_t buffer_size = 1024; // it's going be same everywhere anyway
-//    using buffer_t = std::array<char, buffer_size + 1>; // +1 is for \0
 
     class Socket {
     public:
@@ -25,7 +24,6 @@ namespace net {
         bool is_open;
 
         // every connection in this app will be done through this address
-        // you can even say that I'm creating a protocol here)))
         static const in_port_t port;
         static sockaddr_in address;
     };
@@ -49,7 +47,7 @@ namespace net {
         std::string get_message() const;
     };
 
-    // Okay, protocol for server to report to players in format STATUS\nMESSAGE
+    // Protocol for server to report to players in format: STATUS\nMESSAGE
     enum app_status {
         PLAYER1_CONNECTED,
         PLAYER2_CONNECTED,

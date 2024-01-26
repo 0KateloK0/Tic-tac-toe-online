@@ -28,7 +28,6 @@ int main () {
             std::stringstream source{msg};
             source >> status;
             auto state = static_cast<net::app_status>(status);
-//            std::cout << status << '\n';
             std::cout << source.rdbuf() << std::flush;
             switch (state) {
                 case net::PLAYER1_DISCONNECTED:
